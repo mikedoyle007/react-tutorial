@@ -8,15 +8,17 @@ import './index.css';
 TODOS
 
 1. Display the location for each move in the format (col, row) in the move history list.
-Bold the currently selected item in the move list.
 
-2. Rewrite Board to use two loops to make the squares instead of hardcoding them.
+2. Bold the currently selected item in the move list.
 
-3. Add a toggle button that lets you sort the moves in either ascending or descending order.
+3. Rewrite Board to use two loops to make the squares instead of hardcoding them.
 
-4. When someone wins, highlight the three squares that caused the win.
+4. Add a toggle button that lets you sort the moves in either ascending or descending order.
 
-5. When no one wins, display a message about the result being a draw.
+5. When someone wins, highlight the three squares that caused the win.
+
+6. When no one wins, display a message about the result being a draw.
+
 */
 
 
@@ -79,7 +81,9 @@ class Game extends React.Component {
     super(props);
     this.state = {
       history: [{
-        squares: Array(9).fill(null),
+        squares:  Array(9).fill(null),
+        col:      null,
+        row:      null
       }],
       stepNumber: 0,
       xIsNext: true
@@ -90,6 +94,8 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
+    const col     = this.calcCol(i);
+    const row     = this.calcRow(i);
 
     // early exit
     if (calculateWinner(squares) || squares[i]) return;
@@ -97,7 +103,9 @@ class Game extends React.Component {
     squares[i] = this.state.xIsNext ? 'X' : 'O';
     this.setState({
       history: history.concat([{
-        squares: squares
+        squares,
+        col,
+        row
       }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext
@@ -111,6 +119,29 @@ class Game extends React.Component {
     })
   }
 
+  calcCol(i) {
+    const numColumns = 3;
+    return (i % numColumns) + 1;
+  }
+
+  calcRow(i) {
+    const row1 = 3;
+    const row2 = 6;
+    const row3 = 9;
+
+    let row;
+
+    if (i < row1) {
+      row = 1;
+    } else if (i < row2) {
+      row = 2;
+    } else if (i < row3) {
+      row = 3;
+    }
+
+    return row;
+  }
+
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
@@ -118,7 +149,7 @@ class Game extends React.Component {
 
     const moves = history.map((step, move) => {
       const desc = move ?
-        'Go to move #' + move :
+        `Go to move # ${move} (${step.col}, ${step.row})`:
         'Go to game start';
       return (
         <li key={move}>
