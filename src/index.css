@@ -52,3 +52,7 @@ ol, ul {
 .bold {
   font-weight: 800;
 }
+
+.highlight {
+  border: 3px solid green;
+}
