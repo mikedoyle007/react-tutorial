@@ -7,13 +7,13 @@ import './index.css';
 /*
 TODOS
 
-1. Display the location for each move in the format (col, row) in the move history list.
+1. (done) Display the location for each move in the format (col, row) in the move history list.
 
-2. Bold the currently selected item in the move list.
+2. (done) Bold the currently selected item in the move list.
 
-3. Rewrite Board to use two loops to make the squares instead of hardcoding them.
+3. (done) Rewrite Board to use two loops to make the squares instead of hardcoding them.
 
-4. Add a toggle button that lets you sort the moves in either ascending or descending order.
+4. (done) Add a toggle button that lets you sort the moves in either ascending or descending order.
 
 5. When someone wins, highlight the three squares that caused the win.
 
@@ -37,8 +37,10 @@ TODOS
 // Function Component - simple method when no state is involved
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
-      {props.value}
+    <button
+      className={"square " + (props.value === props.winner ? 'highlight' : '')}
+      onClick={props.onClick}>
+        {props.value}
     </button>
   );
 }
@@ -47,6 +49,7 @@ class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square
+        key={i}
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
       />
@@ -57,9 +60,7 @@ class Board extends React.Component {
     const row = [start, start + 1, start + 2];
     row.map((i) => {
       return (
-        <div>
-          {this.renderSquare(i)}
-        </div>
+        this.renderSquare(i)
       );
     });
 
@@ -103,7 +104,9 @@ class Game extends React.Component {
         row:      null
       }],
       stepNumber: 0,
-      xIsNext: true
+      xIsNext: true,
+      winningSquares: [],
+      winner: ''
     };
   }
 
@@ -159,6 +162,18 @@ class Game extends React.Component {
     return row;
   }
 
+  flipOrder(history) {
+    this.setState({
+      history: history.reverse()
+    });
+  }
+
+  setWinner(winner) {
+    this.setState({
+      winner: winner
+    });
+  }
+
   render() {
     const history = this.state.history;
     const length  = history.length;
@@ -181,8 +196,12 @@ class Game extends React.Component {
     });
 
     let status;
+    let squares;
     if (winner) {
-      status = 'Winner: ' + winner;
+      status = 'Winner: ' + winner.who;
+      // TODO: highlight winning squares
+      squares = winner.squares;
+      this.setWinner(winner.who);
     } else {
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
     }
@@ -197,6 +216,9 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
+          <div>
+            <button onClick={() => this.flipOrder(this.state.history)}>Flip Order</button>
+          </div>
           <ol>{moves}</ol>
         </div>
       </div>
@@ -218,7 +240,10 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return {
+        who: squares[a],
+        squares: lines[i]
+      };
     }
   }
   return null;
